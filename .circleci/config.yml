@@ -84,9 +84,9 @@ jobs:
             INSTALL_K3S_EXEC: --docker
             INSTALL_K3S_VERSION: v0.5.0
       - run:
-          name: Test docker
+          name: test it
           command: |
-            docker ps
+            find .
 #      - run:
 #          name: Create namespace
 #          command: |
@@ -188,6 +188,8 @@ workflows:
     jobs:
       - build
       - e2e
+        requires:
+          - build
 #      - ui:
 #          # this isn't strictly true, we just put in here so that we 2/4 executors rather than 3/4
 #          requires:
