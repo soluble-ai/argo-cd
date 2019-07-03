@@ -9,39 +9,6 @@ commands:
       - configure_git
       - install_go_deps
       - dep_ensure
-  configure_git:
-    steps:
-      - run:
-          name: Configure Git
-          command: |
-            set -x
-            # must be configured for tests to run
-            git config --global user.email you@example.com
-            git config --global user.name "Your Name"
-            echo "export PATH=/home/circleci/.go_workspace/src/github.com/argoproj/argo-cd/hack:\$PATH" | tee -a $BASH_ENV
-            echo "export GIT_ASKPASS=git-ask-pass.sh" | tee -a $BASH_ENV
-      - run:
-          name: Make sure we can clone out the test private repo
-          command: |
-            set -x
-              export GIT_USERNAME=blah
-              export GIT_PASSWORD=B5sBDeoqAVUouoHkrovy
-              git-ask-pass.sh Username
-              git-ask-pass.sh Password
-              git clone https://gitlab.com/argo-cd-test/test-apps.git /tmp/test-apps
-  clean_checkout:
-    steps:
-      - run:
-          name: Remove checked out code
-          command: rm -Rf /home/circleci/.go_workspace/src/github.com/argoproj/argo-cd
-      - checkout
-  install_go_deps:
-    steps:
-      - run:
-          name: Install Go deps
-          command: |
-            set -x
-            make install-dev-tools
   dep_ensure:
     steps:
       - restore_cache:
@@ -161,22 +128,6 @@ commands:
           key: dl-v4
           paths:
             - /tmp/dl
-  save_go_cache:
-    steps:
-      - save_cache:
-          key: go-v16-{{ .Branch }}
-          paths:
-            - /home/circleci/.go_workspace
-            - /home/circleci/.cache/go-build
-            - /home/circleci/sdk/go1.12.6
-  restore_go_cache:
-    steps:
-      - restore_cache:
-          keys:
-            - go-v16-{{ .Branch }}
-            - go-v16-master
-            - go-v15-{{ .Branch }}
-            - go-v15-master
 jobs:
   build:
     working_directory: /home/circleci/.go_workspace/src/github.com/argoproj/argo-cd
@@ -343,8 +294,8 @@ workflows:
   workflow:
     jobs:
       - build
-      - e2e
-      - ui:
-          # this isn't strictly true, we just put in here so that we 2/4 executors rather than 3/4
-          requires:
-            - build
+#      - e2e
+#      - ui:
+#          # this isn't strictly true, we just put in here so that we 2/4 executors rather than 3/4
+#          requires:
+#            - build

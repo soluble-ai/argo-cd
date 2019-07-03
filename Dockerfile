@@ -85,6 +85,11 @@ RUN wget https://install.goreleaser.com/github.com/golangci/golangci-lint.sh  &&
     ./golangci-lint.sh -b $GOPATH/bin && \
     golangci-lint linters
 
+COPY Makefile .
+COPY hack ./hack
+
+RUN make install-dev-tools
+
 COPY .golangci.yml ${GOPATH}/src/dummy/.golangci.yml
 
 RUN cd ${GOPATH}/src/dummy && \

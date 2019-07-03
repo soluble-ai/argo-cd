@@ -145,7 +145,7 @@ endif
 .PHONY: builder-image
 builder-image:
 	docker build  -t $(IMAGE_PREFIX)argo-cd-ci-builder:$(IMAGE_TAG) --target builder .
-	docker push $(IMAGE_PREFIX)argo-cd-ci-builder:$(IMAGE_TAG)
+	@if [ "$(DOCKER_PUSH)" = "true" ] ; then docker push $(IMAGE_PREFIX)argo-cd-ci-builder:$(IMAGE_TAG) ; fi
 
 .PHONY: dep-ensure
 dep-ensure:
