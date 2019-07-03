@@ -49,26 +49,26 @@ jobs:
 #          command: bash <(curl -s https://codecov.io/bash) -f coverage.out
 #          # This takes 2m, lets background it.
 #          background: true
-      - run:
-          name: Generate code
-          command: make codegen
-      - run:
-          name: Lint code
-          # use GOGC to limit memory usage in exchange for CPU usage, https://github.com/golangci/golangci-lint#memory-usage-of-golangci-lint
-          # we have 8GB RAM, 2CPUs https://circleci.com/docs/2.0/executor-types/#using-machine
-          command: LINT_GOGC=50 LINT_CONCURRENCY=2 LINT_DEADLINE=2m0s make lint
-      - run:
-          name: Check nothing has changed
-          command: |
-            set -xo pipefail
-            # This makes sure you ran `make pre-commit` before you pushed.
-            # We exclude the Swagger resources; CircleCI doesn't generate them correctly.
-            # When this fails, it will, create a patch file you can apply locally to fix it.
-            # To troubleshoot builds: https://argoproj.github.io/argo-cd/developer-guide/ci/
-            git diff --exit-code -- . ':!Gopkg.lock'  ':!assets/swagger.json' | tee codegen.patch
-      - store_artifacts:
-          path: codegen.patch
-          when: always
+#      - run:
+#          name: Generate code
+#          command: make codegen
+#      - run:
+#          name: Lint code
+#          # use GOGC to limit memory usage in exchange for CPU usage, https://github.com/golangci/golangci-lint#memory-usage-of-golangci-lint
+#          # we have 8GB RAM, 2CPUs https://circleci.com/docs/2.0/executor-types/#using-machine
+#          command: LINT_GOGC=50 LINT_CONCURRENCY=2 LINT_DEADLINE=2m0s make lint
+#      - run:
+#          name: Check nothing has changed
+#          command: |
+#            set -xo pipefail
+#            # This makes sure you ran `make pre-commit` before you pushed.
+#            # We exclude the Swagger resources; CircleCI doesn't generate them correctly.
+#            # When this fails, it will, create a patch file you can apply locally to fix it.
+#            # To troubleshoot builds: https://argoproj.github.io/argo-cd/developer-guide/ci/
+#            git diff --exit-code -- . ':!Gopkg.lock'  ':!assets/swagger.json' | tee codegen.patch
+#      - store_artifacts:
+#          path: codegen.patch
+#          when: always
   e2e:
     working_directory: /home/circleci/.go_workspace/src/github.com/argoproj/argo-cd
     machine:
