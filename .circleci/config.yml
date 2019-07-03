@@ -21,6 +21,7 @@ jobs:
     docker:
       - image: argoproj/argo-cd-ci-builder:v1.0.0
     steps:
+      - checkout
       - before
       - run:
           name: Run unit tests
