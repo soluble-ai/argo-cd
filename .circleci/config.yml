@@ -30,6 +30,9 @@ jobs:
     working_directory: /go/src/github.com/argoproj/argo-cd
     docker:
       - image: argoproj/argo-cd-ci-builder:v1.0.0
+    environment:
+      GOPATH: /go
+
     steps:
       - checkout
       - before
@@ -48,7 +51,6 @@ jobs:
 #          background: true
       - run:
           name: Generate code
-          command: make codegen
       - run:
           name: Lint code
           # use GOGC to limit memory usage in exchange for CPU usage, https://github.com/golangci/golangci-lint#memory-usage-of-golangci-lint
