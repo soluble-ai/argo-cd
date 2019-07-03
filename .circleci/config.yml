@@ -36,17 +36,12 @@ jobs:
       - run:
           name: Run unit tests
           command: |
-            set -x
-            mkdir -p /tmp/test-results
-            trap "go-junit-report </tmp/test-results/go-test.out > /tmp/test-results/go-test-report.xml" EXIT
-            make test | tee /tmp/test-results/go-test.out
+            make test
       - run:
           name: Uploading code coverage
           command: bash <(curl -s https://codecov.io/bash) -f coverage.out
           # This takes 2m, lets background it.
           background: true
-      - store_test_results:
-          path: /tmp/test-results
       - run:
           name: Generate code
           command: make codegen
