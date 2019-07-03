@@ -3,6 +3,16 @@ commands:
   before:
     steps:
       - dep_ensure
+      - configure_git
+  configure_git:
+    steps:
+      - run:
+          name: Configure Git
+          command: |
+            set -x
+            # must be configured for tests to run
+            git config --global user.email you@example.com
+            git config --global user.name "Your Name"
   dep_ensure:
     steps:
       - restore_cache:
@@ -10,7 +20,7 @@ commands:
             - dep-ensure-v1-{{ checksum "Gopkg.lock" }}
       - run:
           name: Run dep ensure
-          command: '[ -f ./vendor/{{ checksum "Gopkg.lock" }} ] || (dep ensure -v && touch ./vendor/{{ checksum "Gopkg.lock" }} )'
+          command: '[ -f ./vendor/$(Gopkg.lock | cut -d " " -f 1) ] || (dep ensure -v && touch ./vendor/$(Gopkg.lock | cut -d " " -f 1) )'
       - save_cache:
           key: dep-ensure-{{ checksum "Gopkg.lock" }}
           paths:
