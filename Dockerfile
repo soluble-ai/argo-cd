@@ -101,6 +101,11 @@ RUN curl -sLf -C - -o /tmp/swagger https://github.com/go-swagger/go-swagger/rele
     chmod +x /usr/local/bin/swagger && \
     swagger version
 
+RUN curl -sLf -C - -o /tmp/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && \
+    cp /tmp/jq /usr/local/bin/jq && \
+    chmod +x /usr/local/bin/jq && \
+    jq --version
+
 COPY .golangci.yml ${GOPATH}/src/dummy/.golangci.yml
 
 RUN cd ${GOPATH}/src/dummy && \
