@@ -186,8 +186,6 @@ workflows:
   version: 2
   workflow:
     jobs:
-      - install_golang-
-      - before
       - build
       - e2e
 #      - ui:
