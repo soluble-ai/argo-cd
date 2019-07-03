@@ -19,7 +19,7 @@ jobs:
   build:
     working_directory: /go/src/github.com/argoproj/argo-cd
     docker:
-      image: argoproj/argo-cd-ci-builder:v1.0.0
+      - image: argoproj/argo-cd-ci-builder:v1.0.0
     steps:
       - before
       - run:
