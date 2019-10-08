@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/argoproj/argo-cd/pkg/apis/application"
 	"github.com/argoproj/argo-cd/util/kube"
+	argoexec "github.com/argoproj/pkg/exec"
 
 	"github.com/ghodss/yaml"
 	extensionsobj "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -24,12 +24,16 @@ var (
 )
 
 func getCustomResourceDefinitions() map[string]*extensionsobj.CustomResourceDefinition {
-	crdYamlBytes, err := exec.Command(
-		"controller-gen",
+
+	crdYamlBytes, err := argoexec.RunCommand(
+		"go",
+		argoexec.CmdOpts{},
+		"run",
+		"sigs.k8s.io/controller-tools/cmd/controller-gen",
 		"paths=./pkg/apis/application/...",
 		"crd:trivialVersions=true",
 		"output:crd:stdout",
-	).Output()
+	)
 	checkErr(err)
 
 	// clean up stuff left by controller-gen

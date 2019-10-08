@@ -65,7 +65,7 @@ go build -i -o dist/protoc-gen-swagger ./vendor/github.com/grpc-ecosystem/grpc-g
 # Generate server/<service>/(<service>.pb.go|<service>.pb.gw.go)
 PROTO_FILES=$(find $PROJECT_ROOT \( -name "*.proto" -and -path '*/server/*' -or -path '*/reposerver/*' -and -name "*.proto" \) | sort)
 for i in ${PROTO_FILES}; do
-    GOOGLE_PROTO_API_PATH=${PROJECT_ROOT}/vendor/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis
+    GOOGLE_PROTO_API_PATH=$GOPATH/pkg/mod/github.com/grpc-ecosystem/grpc-gateway@v1.3.1/third_party/googleapis
     GOGO_PROTOBUF_PATH=${PROJECT_ROOT}/vendor/github.com/gogo/protobuf
     protoc \
         -I${PROJECT_ROOT} \
