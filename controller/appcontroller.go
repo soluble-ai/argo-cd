@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/argoproj/argo-cd/engine"
+
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/semaphore"
 	v1 "k8s.io/api/core/v1"
@@ -20,7 +22,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 
@@ -38,10 +39,8 @@ import (
 	"github.com/argoproj/argo-cd/util"
 	"github.com/argoproj/argo-cd/util/argo"
 	argocache "github.com/argoproj/argo-cd/util/cache"
-	"github.com/argoproj/argo-cd/util/db"
 	"github.com/argoproj/argo-cd/util/diff"
 	"github.com/argoproj/argo-cd/util/kube"
-	settings_util "github.com/argoproj/argo-cd/util/settings"
 )
 
 const (
@@ -69,10 +68,9 @@ func (a CompareWith) Max(b CompareWith) CompareWith {
 type ApplicationController struct {
 	cache                     *argocache.Cache
 	namespace                 string
-	kubeClientset             kubernetes.Interface
 	kubectl                   kube.Kubectl
 	applicationClientset      appclientset.Interface
-	auditLogger               *argo.AuditLogger
+	auditLogger               engine.AuditLogger
 	appRefreshQueue           workqueue.RateLimitingInterface
 	appOperationQueue         workqueue.RateLimitingInterface
 	appInformer               cache.SharedIndexInformer
@@ -83,8 +81,8 @@ type ApplicationController struct {
 	statusRefreshTimeout      time.Duration
 	selfHealTimeout           time.Duration
 	repoClientset             apiclient.Clientset
-	db                        db.ArgoDB
-	settingsMgr               *settings_util.SettingsManager
+	db                        engine.CredentialsStore
+	settingsMgr               engine.ReconciliationSettings
 	refreshRequestedApps      map[string]CompareWith
 	refreshRequestedAppsMutex *sync.Mutex
 	metricsServer             *metrics.MetricsServer
@@ -99,8 +97,9 @@ type ApplicationControllerConfig struct {
 // NewApplicationController creates new instance of ApplicationController.
 func NewApplicationController(
 	namespace string,
-	settingsMgr *settings_util.SettingsManager,
-	kubeClientset kubernetes.Interface,
+	settingsMgr engine.ReconciliationSettings,
+	db engine.CredentialsStore,
+	auditLogger engine.AuditLogger,
 	applicationClientset appclientset.Interface,
 	repoClientset apiclient.Clientset,
 	argoCache *argocache.Cache,
@@ -109,12 +108,11 @@ func NewApplicationController(
 	selfHealTimeout time.Duration,
 	metricsPort int,
 	kubectlParallelismLimit int64,
+	healthCheck func() error,
 ) (*ApplicationController, error) {
-	db := db.NewDB(namespace, settingsMgr, kubeClientset)
 	ctrl := ApplicationController{
 		cache:                     argoCache,
 		namespace:                 namespace,
-		kubeClientset:             kubeClientset,
 		kubectl:                   kubectl,
 		applicationClientset:      applicationClientset,
 		repoClientset:             repoClientset,
@@ -124,7 +122,7 @@ func NewApplicationController(
 		statusRefreshTimeout:      appResyncPeriod,
 		refreshRequestedApps:      make(map[string]CompareWith),
 		refreshRequestedAppsMutex: &sync.Mutex{},
-		auditLogger:               argo.NewAuditLogger(namespace, kubeClientset, "argocd-application-controller"),
+		auditLogger:               auditLogger,
 		settingsMgr:               settingsMgr,
 		selfHealTimeout:           selfHealTimeout,
 	}
@@ -138,10 +136,7 @@ func NewApplicationController(
 	}
 	projInformer := v1alpha1.NewAppProjectInformer(applicationClientset, namespace, appResyncPeriod, cache.Indexers{})
 	metricsAddr := fmt.Sprintf("0.0.0.0:%d", metricsPort)
-	ctrl.metricsServer = metrics.NewMetricsServer(metricsAddr, appLister, func() error {
-		_, err := kubeClientset.Discovery().ServerVersion()
-		return err
-	})
+	ctrl.metricsServer = metrics.NewMetricsServer(metricsAddr, appLister, healthCheck)
 	stateCache := statecache.NewLiveStateCache(db, appInformer, ctrl.settingsMgr, kubectl, ctrl.metricsServer, ctrl.handleObjectUpdated)
 	appStateManager := NewAppStateManager(db, applicationClientset, repoClientset, namespace, kubectl, ctrl.settingsMgr, stateCache, projInformer, ctrl.metricsServer)
 	ctrl.appInformer = appInformer

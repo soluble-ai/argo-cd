@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/argoproj/argo-cd/engine"
+
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -52,11 +54,10 @@ func GetTargetObjKey(a *appv1.Application, un *unstructured.Unstructured, isName
 
 	return key
 }
-
 func NewLiveStateCache(
-	db db.ArgoDB,
+	db engine.CredentialsStore,
 	appInformer cache.SharedIndexInformer,
-	settingsMgr *settings.SettingsManager,
+	settingsMgr engine.ReconciliationSettings,
 	kubectl kube.Kubectl,
 	metricsServer *metrics.MetricsServer,
 	onObjectUpdated ObjectUpdatedHandler) LiveStateCache {
@@ -75,13 +76,13 @@ func NewLiveStateCache(
 }
 
 type liveStateCache struct {
-	db                db.ArgoDB
+	db                engine.CredentialsStore
 	clusters          map[string]*clusterInfo
 	lock              *sync.Mutex
 	appInformer       cache.SharedIndexInformer
 	onObjectUpdated   ObjectUpdatedHandler
 	kubectl           kube.Kubectl
-	settingsMgr       *settings.SettingsManager
+	settingsMgr       engine.ReconciliationSettings
 	metricsServer     *metrics.MetricsServer
 	cacheSettingsLock *sync.Mutex
 	cacheSettings     *cacheSettings

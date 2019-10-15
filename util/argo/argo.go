@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/argoproj/argo-cd/engine"
+
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -261,7 +263,7 @@ func enrichSpec(spec *argoappv1.ApplicationSpec, appDetails *apiclient.RepoAppDe
 }
 
 // ValidatePermissions ensures that the referenced cluster has been added to Argo CD and the app source repo and destination namespace/cluster are permitted in app project
-func ValidatePermissions(ctx context.Context, spec *argoappv1.ApplicationSpec, proj *argoappv1.AppProject, db db.ArgoDB) ([]argoappv1.ApplicationCondition, error) {
+func ValidatePermissions(ctx context.Context, spec *argoappv1.ApplicationSpec, proj *argoappv1.AppProject, db engine.CredentialsStore) ([]argoappv1.ApplicationCondition, error) {
 	conditions := make([]argoappv1.ApplicationCondition, 0)
 	if spec.Source.RepoURL == "" || (spec.Source.Path == "" && spec.Source.Chart == "") {
 		conditions = append(conditions, argoappv1.ApplicationCondition{

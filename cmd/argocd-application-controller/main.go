@@ -6,6 +6,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/argoproj/argo-cd/util/argo"
+
+	"github.com/argoproj/argo-cd/util/db"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
@@ -81,7 +85,8 @@ func newCommand() *cobra.Command {
 			appController, err := controller.NewApplicationController(
 				namespace,
 				settingsMgr,
-				kubeClient,
+				db.NewDB(namespace, settingsMgr, kubeClient),
+				argo.NewAuditLogger(namespace, kubeClient, "argocd-application-controller"),
 				appClient,
 				repoClientset,
 				cache,
@@ -89,7 +94,10 @@ func newCommand() *cobra.Command {
 				resyncDuration,
 				time.Duration(selfHealTimeoutSeconds)*time.Second,
 				metricsPort,
-				kubectlParallelismLimit)
+				kubectlParallelismLimit, func() error {
+					_, err := kubeClient.Discovery().ServerVersion()
+					return err
+				})
 			errors.CheckError(err)
 
 			log.Infof("Application Controller (version: %s) starting (namespace: %s)", common.GetVersion(), namespace)

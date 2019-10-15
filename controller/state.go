@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/argoproj/argo-cd/engine"
+
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -22,14 +24,12 @@ import (
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
 	"github.com/argoproj/argo-cd/util"
 	"github.com/argoproj/argo-cd/util/argo"
-	"github.com/argoproj/argo-cd/util/db"
 	"github.com/argoproj/argo-cd/util/diff"
 	"github.com/argoproj/argo-cd/util/health"
 	hookutil "github.com/argoproj/argo-cd/util/hook"
 	kubeutil "github.com/argoproj/argo-cd/util/kube"
 	"github.com/argoproj/argo-cd/util/resource"
 	"github.com/argoproj/argo-cd/util/resource/ignore"
-	"github.com/argoproj/argo-cd/util/settings"
 )
 
 type managedResource struct {
@@ -76,8 +76,8 @@ type comparisonResult struct {
 // appStateManager allows to compare applications to git
 type appStateManager struct {
 	metricsServer  *metrics.MetricsServer
-	db             db.ArgoDB
-	settingsMgr    *settings.SettingsManager
+	db             engine.CredentialsStore
+	settingsMgr    engine.ReconciliationSettings
 	appclientset   appclientset.Interface
 	projInformer   cache.SharedIndexInformer
 	kubectl        kubeutil.Kubectl
@@ -512,12 +512,12 @@ func (m *appStateManager) persistRevisionHistory(app *v1alpha1.Application, revi
 
 // NewAppStateManager creates new instance of Ksonnet app comparator
 func NewAppStateManager(
-	db db.ArgoDB,
+	db engine.CredentialsStore,
 	appclientset appclientset.Interface,
 	repoClientset apiclient.Clientset,
 	namespace string,
 	kubectl kubeutil.Kubectl,
-	settingsMgr *settings.SettingsManager,
+	settingsMgr engine.ReconciliationSettings,
 	liveStateCache statecache.LiveStateCache,
 	projInformer cache.SharedIndexInformer,
 	metricsServer *metrics.MetricsServer,
