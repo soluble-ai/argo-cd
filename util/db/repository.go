@@ -85,6 +85,11 @@ func (db *db) GetRepository(ctx context.Context, repoURL string) (*appsv1.Reposi
 		return nil, err
 	}
 
+	return db.getRepository(repoURL, repos, repoCredentials)
+}
+
+func (db *db) getRepository(repoURL string, repos []settings.RepoCredentials, repoCredentials []settings.RepoCredentials) (*appsv1.Repository, error) {
+	var err error
 	repo := &appsv1.Repository{Repo: repoURL}
 	index := getRepositoryIndex(repos, repoURL)
 	if index >= 0 {
@@ -112,10 +117,14 @@ func (db *db) ListRepositories(ctx context.Context) ([]*appsv1.Repository, error
 	if err != nil {
 		return nil, err
 	}
+	repoCredentials, err := db.settingsMgr.GetRepositoryCredentials()
+	if err != nil {
+		return nil, err
+	}
 
 	var repos []*appsv1.Repository
 	for _, inRepo := range inRepos {
-		r, err := db.GetRepository(ctx, inRepo.URL)
+		r, err := db.getRepository(inRepo.URL, inRepos, repoCredentials)
 		if err != nil {
 			return nil, err
 		}
