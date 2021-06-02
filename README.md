@@ -1,4 +1,6 @@
 [![slack](https://img.shields.io/badge/slack-argoproj-brightgreen.svg?logo=slack)](https://argoproj.github.io/community/join-slack)
+
+[![CIS](https://app.demo.soluble.cloud/api/v1/public/badges/ffbe9037-7d20-44df-829e-dbc461bf80a0.svg)](https://app.demo.soluble.cloud/repos/details/github.com/soluble-ai/argo-cd)  [![IaC](https://app.demo.soluble.cloud/api/v1/public/badges/9522ed28-9d84-4097-9423-d189d2340e72.svg)](https://app.demo.soluble.cloud/repos/details/github.com/soluble-ai/argo-cd)  
 [![codecov](https://codecov.io/gh/argoproj/argo-cd/branch/master/graph/badge.svg)](https://codecov.io/gh/argoproj/argo-cd)
 
 # Argo CD - Declarative Continuous Delivery for Kubernetes
